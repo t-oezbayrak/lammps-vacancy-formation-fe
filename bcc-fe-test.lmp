@@ -1,0 +1,37 @@
+q# --- SETTINGS ---
+clear
+units           metal
+dimension       3
+boundary        p p p
+atom_style      atomic
+
+# --- BOX AND POTENTIAL ---
+lattice         bcc 2.8553
+region          simbox block 0 10 0 10 0 10
+create_box      1 simbox
+create_atoms    1 box
+
+pair_style      eam/fs
+pair_coeff      * * Fe_mm.eam.fs Fe
+
+# --- PERFECT CRYSTAL ---
+# Taking outputs of 'atoms' and 'pe' (Potential Energy) from thermo command.
+# Take notes from terminal.
+thermo          10
+thermo_style    custom step atoms pe lx press
+
+fix             1 all box/relax iso 0.0 vmax 0.001
+minimize        1.0e-12 1.0e-12 10000 100000
+
+print           "*** TAKE NOTE: 'PE' (Perfect Energy) ***"
+
+unfix           1  # deleting box relax
+
+# --- DEFECT CRYSTAL ---
+group           del_atom id 1
+delete_atoms    group del_atom
+
+# Atom minimization (box is fixed)
+minimize        1.0e-12 1.0e-12 10000 100000
+
+print           "*** TAKE NOTE. 'PE' (Defect Energy) ***"
